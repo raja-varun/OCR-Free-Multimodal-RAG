@@ -1,142 +1,117 @@
 # OCR-Free Multimodal RAG
 
-An OCR-Free Multimodal Document Retrieval and Question Answering System built using Vision-Language Models, FAISS, MaxSim Retrieval, FastAPI, and React.
+A local prototype for OCR-free document retrieval and visual question answering
+from PDF page images. The current backend uses a Hugging Face vision-language
+model to create page representations, FAISS for retrieval, and a FastAPI layer;
+the frontend is a React application.
 
-## Overview
+## Status
 
-This project enables users to upload PDF documents, index them without using OCR, retrieve relevant pages using semantic search, and generate answers using Multimodal Retrieval-Augmented Generation (RAG).
+This checkout is an experimental prototype. The public GitHub repository mapped
+to this folder is substantially newer than the local commit, so this working
+tree must not be pushed or merged blindly. The local code has no committed
+backend lockfile or automated end-to-end evaluation. No production deployment or
+accuracy claim is made here.
 
-Unlike traditional OCR-based systems, this project preserves the visual layout and structure of documents by directly processing page images with a Vision-Language Model.
+## Local architecture
 
-## Features
-
-- OCR-Free document understanding
-- PDF upload and indexing
-- Semantic document retrieval
-- MaxSim late interaction reranking
-- FAISS vector indexing
-- Multimodal RAG question answering
-- FastAPI backend
-- React frontend
-- Multi-document support
-
-## Tech Stack
-
-### Frontend
-- React.js
-- CSS
-
-### Backend
-- FastAPI
-- Python
-
-### AI / Machine Learning
-- Qwen2-VL
-- PyTorch
-- Hugging Face Transformers
-- FAISS
-
-### Other Libraries
-- pdf2image
-- Pillow
-- NumPy
-
-## Project Structure
-
-```
-OCR-Free-Multimodal-RAG
-│
-├── backend/
-│   ├── api.py
-│   ├── indexer.py
-│   ├── search.py
-│   ├── rag.py
-│   └── ...
-│
-├── frontend/
-│
-├── sample_data/
-│
-├── README.md
-└── .gitignore
+```mermaid
+flowchart TD
+    A[React frontend] --> B[FastAPI API]
+    B --> C[PDF upload]
+    C --> D[PDF pages via pdf2image]
+    D --> E[Vision-language page representations]
+    E --> F[FAISS/index files in local data]
+    B --> G[Semantic page search]
+    G --> H[Retrieved page images]
+    H --> I[Qwen2-VL answer generation]
+    I --> A
 ```
 
-## Installation
+See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for component boundaries and
+local data/privacy notes.
 
-Clone the repository:
+## Technology
 
-```bash
-git clone https://github.com/raja-varun/OCR-Free-Multimodal-RAG.git
+- Python, FastAPI, Uvicorn
+- PyTorch and Hugging Face Transformers
+- FAISS, NumPy, Pillow, and pdf2image
+- React, Axios, and Create React App
+
+## Setup
+
+Create a Python environment for the backend and install its dependencies:
+
+```powershell
+python -m venv .venv
+.venv\Scripts\activate
+python -m pip install -r backend/requirements.txt
 ```
 
-Go to the project directory:
+`pdf2image` also requires a working Poppler installation on Windows. The
+Transformers model is downloaded from Hugging Face on first use and may require
+substantial disk space and GPU/CPU memory. Do not put access tokens, downloaded
+model caches, uploaded documents, or generated indexes into Git.
 
-```bash
-cd OCR-Free-Multimodal-RAG
-```
+Install the frontend dependencies:
 
-Install backend dependencies:
-
-```bash
-pip install -r requirements.txt
-```
-
-Install frontend dependencies:
-
-```bash
+```powershell
 cd frontend
 npm install
 ```
 
-## Running the Project
+## Run
 
-### Backend
+Start the backend from `backend/` so its local imports resolve:
 
-```bash
+```powershell
 cd backend
-..\colpali-env\Scripts\activate
-uvicorn api:app --reload
+python -m uvicorn api:app --reload --host 127.0.0.1 --port 8000
 ```
 
-### Frontend
+In another terminal, start the frontend:
 
-```bash
+```powershell
 cd frontend
 npm start
 ```
 
-Open your browser:
+The current frontend expects the API at `http://127.0.0.1:8000`. Upload a PDF,
+wait for indexing, then search or ask a question.
 
+## API surface
+
+- `GET /` — health-style message.
+- `GET /documents` — list locally indexed document folders.
+- `POST /upload` — save and index a PDF upload.
+- `DELETE /documents/{doc_id}` — delete a local indexed document.
+- `GET /search?query=...` — retrieve relevant page images.
+- `GET /ask?query=...` — generate an answer from the top retrieved page.
+
+These endpoints are intended for local development. The current CORS policy is
+permissive and should be restricted before exposing the API to another network.
+
+## Verification
+
+```powershell
+python -m py_compile backend/*.py
+cd frontend
+npm test -- --watchAll=false
+npm run build
 ```
-http://localhost:3000
-```
 
-## Sample Workflow
+The checks above validate syntax and the frontend build/test harness; they do not
+prove retrieval quality, model grounding, or support for every PDF layout.
 
-1. Upload a PDF document.
-2. The document is converted into page images.
-3. Vision-language embeddings are generated.
-4. FAISS indexes the document embeddings.
-5. Enter a search query.
-6. Relevant pages are retrieved using MaxSim.
-7. Ask questions about the document using Multimodal RAG.
-8. The system generates grounded answers based on the retrieved pages.
+## Data and security
 
-## Future Improvements
+Local uploads, generated page images, embeddings, FAISS indexes, model caches,
+and tokens are private/generated material. Keep them outside commits. The
+repository does not include a public dataset license or a production access
+control layer.
 
-- Better UI/UX
-- Cloud deployment
-- Multi-turn conversational memory
-- Evidence highlighting
-- Support for more document formats
-- Enterprise-scale indexing
+## License
 
-## Author
-
-**Raja Varun**
-
-B.Tech Computer Science & Engineering (Data Science)
-
----
-
-This project was developed for learning and research purposes in OCR-Free Document Intelligence and Multimodal Retrieval-Augmented Generation (RAG).
+No license is currently supplied. Confirm the licenses of the source code,
+model, downloaded weights, sample documents, and any future public fixtures
+before redistribution.

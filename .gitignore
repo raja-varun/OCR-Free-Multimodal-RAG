@@ -74,3 +74,7 @@ image2.jpg
 # Python Logs
 # =====================================
 *.log
+# Local document store and generated metadata
+data/documents/
+data/metadata.json
+sample_data/Assignment.pdf.pdf

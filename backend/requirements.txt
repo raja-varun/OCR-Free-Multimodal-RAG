@@ -1,0 +1,9 @@
+fastapi
+uvicorn[standard]
+python-multipart
+transformers
+torch
+faiss-cpu
+pdf2image
+Pillow
+numpy
